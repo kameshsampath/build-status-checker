@@ -4,11 +4,11 @@ A utility container image that could be used as init containers with Kuberenetes
 
 == Pre-requisite
 
-* The Kubernetes environment should have https://github.com/knative/build[Knative Build] deployed
+* The Kubernetes environment should have https://github.com/knative/build[Knative Build] deployed in your kubernetes environment
 
-== How to use 
+== How to use ?
 
-Add the following initcontainer definition to the kubernetes deployment
+Add the following init-container definition to the kubernetes deployment
 
 [source,yaml]
 ----
@@ -19,4 +19,16 @@ Add the following initcontainer definition to the kubernetes deployment
          - poll
          - --buildname=my-build
 ----
+
+== Commands
+
+The application right now supports only one command called `poll`  the polls a named build. The `poll` command has only one parameter called `buildname` i.e the name of the build that needs to be polled and checked for status
+
+=== Global Parameters
+
+The application supports the following parameters:
+
+- loglevel: The level of logging you want from the application, all log levels from https://github.com/sirupsen/logrus are applicable
+- kubeconfig: The location of kubeconfig file if you are running out of the cluster
+
 

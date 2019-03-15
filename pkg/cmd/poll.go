@@ -6,6 +6,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/kameshsampath/build-status-checker/pkg/build"
+	"github.com/kameshsampath/build-status-checker/pkg/helpers"
 	"github.com/kameshsampath/build-status-checker/pkg/types"
 
 	log "github.com/sirupsen/logrus"
@@ -18,10 +19,8 @@ func PollCommand(gopts *types.KbscOptions) *cobra.Command {
 		Use:   "poll",
 		Short: "polls a knative build by name and waits for its status",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			logL, err := log.ParseLevel(gopts.LogLevel)
-			if err == nil {
-				log.SetLevel(logL)
-			}
+			helpers.SetLogLevel(gopts.LogLevel)
+			log.Debugf("Using kubeconfig : %s", gopts.KubeConfig)
 			log.Infof("Polling build: '%s' in namespace '%s' ", opt.BuildName, opt.Namespace)
 			config, err := clientcmd.BuildConfigFromFlags("", gopts.KubeConfig)
 			if err != nil {

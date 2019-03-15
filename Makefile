@@ -1,3 +1,5 @@
+DESTINATION_NAME := 'quay.io/rhdevelopers/build-status-checker'
+
 default: bin/kbsc
 
 bin:
@@ -6,9 +8,9 @@ bin:
 bin/kbsc: bin
 	GOOS=linux go build -o bin/kbsc -v .
 
-.PHONY: quay.io/rhdevelopers/build-status-checker
-quay.io/rhdevelopers/build-status-checker:
-	docker build -t quay.io/rhdevelopers/build-status-checker --rm .
+.PHONY: $(DESTINATION_NAME)
+$(DESTINATION_NAME): bin/kbsc
+	docker build -t $(DESTINATION_NAME) --rm . && docker push $(DESTINATION_NAME)
 
 .PHONY: clean
 clean:
@@ -21,3 +23,6 @@ test:
 .PHONY: dep
 dep:
 	dep ensure
+
+.PHONY: all
+all: clean $(DESTINATION_NAME)
