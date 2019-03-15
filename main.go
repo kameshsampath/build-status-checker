@@ -11,7 +11,6 @@ import (
 
 func main() {
 	var opt types.KbscOptions
-	fmt.Println("Hare Krishna!")
 
 	rootCmd := &cobra.Command{
 		Use:   "kbsc",
@@ -19,6 +18,7 @@ func main() {
 	}
 
 	rootCmd.PersistentFlags().StringVarP(&opt.KubeConfig, "kubeconfig", "c", "", "Path to a kubeconfig. Only required if out-of-cluster")
+	rootCmd.PersistentFlags().StringVarP(&opt.LogLevel, "loglevel", "l", "", "The logrus log level. Default: Info")
 	rootCmd.AddCommand(cmd.PollCommand(&opt))
 
 	if err := rootCmd.Execute(); err != nil {

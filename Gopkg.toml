@@ -47,3 +47,7 @@
 [[override]]
   name = "k8s.io/apimachinery"
   revision = "kubernetes-1.12.6"
+
+[[override]]
+  name = "github.com/sirupsen/logrus"
+  revision = "v1.4.0"

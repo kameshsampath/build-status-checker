@@ -2,18 +2,28 @@ package build
 
 import (
 	"fmt"
-	"os"
-	"time"
 
+	"github.com/kameshsampath/build-status-checker/pkg/types"
+	"github.com/knative/build/pkg/apis/build/v1alpha1"
 	knativebuild "github.com/knative/build/pkg/client/clientset/versioned"
-	duckv1alpha1 "github.com/knative/pkg/apis/duck/v1alpha1"
-	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
+
+	duckv1alpha1 "github.com/knative/pkg/apis/duck/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
+
+	log "github.com/sirupsen/logrus"
 )
 
 //PollAndWait - will check the status of the knative build `buildName` in namespace `namespace`
-func PollAndWait(config *rest.Config, buildName string, namespace string) error {
+func PollAndWait(config *rest.Config, buildName string, namespace string, gopts *types.KbscOptions) error {
+	logL, err := log.ParseLevel(gopts.LogLevel)
+	if err == nil {
+		log.SetLevel(logL)
+	}
+
+	nameSelector := fmt.Sprintf("metadata.name=%s", buildName)
+	log.Debugf("Applying field selector %s", nameSelector)
 
 	//create client set
 	clientset, err := knativebuild.NewForConfig(config)
@@ -23,28 +33,25 @@ func PollAndWait(config *rest.Config, buildName string, namespace string) error 
 	}
 
 	for {
-		time.Sleep(10 * time.Second)
-		//TODO pull events than pod
-		build, err := clientset.BuildV1alpha1().Builds(namespace).Get(buildName, v1.GetOptions{})
+		w, err := clientset.BuildV1alpha1().Builds(namespace).Watch(v1.ListOptions{FieldSelector: nameSelector})
 		if err != nil {
-			return err
+			panic(err)
 		}
-		// there cant be more then one build pod with same name
-		if build != nil {
-			var bc = build.Status.GetCondition(duckv1alpha1.ConditionSucceeded)
+		//build, err := clientset.BuildV1alpha1().Builds(namespace).Get(buildName, v1.GetOptions{})
+		for e := range w.ResultChan() {
+			// convert the object to v1alpha1.Build
+			b := e.Object.(*v1alpha1.Build)
+			log.Debugf("Current Status %v", b.Status)
+			var bc = b.Status.GetCondition(duckv1alpha1.ConditionSucceeded)
 			if bc != nil {
 				if bc.Status == corev1.ConditionTrue {
-					fmt.Printf("Build %s in namespace %s completed \n", buildName, namespace)
-					return err
+					log.Infof("Build %s in namespace %s completed \n", buildName, namespace)
+					return nil
 				} else if bc.Status == corev1.ConditionFalse {
-					fmt.Fprintf(os.Stderr, "Build %s in namespace %s failed \n  %s \n", buildName, namespace, bc.Message)
+					log.Errorf("Build %s in namespace %s has failed \n  %s \n", buildName, namespace, bc.Message)
 					return err
 				}
 			}
-		} else {
-			fmt.Fprintf(os.Stderr, "No build pod(s) with name '%s' running in namespace '%s' \n ", buildName, namespace)
-			return nil
 		}
 	}
-
 }
