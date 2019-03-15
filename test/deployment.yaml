@@ -1,0 +1,20 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: test-build
+spec:
+  selector:
+    matchLabels:
+      foo: test-build
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        foo: test-build
+    spec:
+      containers:
+        - env:
+            - name: BUILD_NAME
+              value: "quarkus-greeter"
+          name: build-status-checker
+          image: quay.io/rhdevelopers/build-status-checker

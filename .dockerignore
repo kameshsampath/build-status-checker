@@ -1,0 +1,6 @@
+vendor
+buildImages.sh
+Gopkg.*
+LICENSE
+README.adoc
+*.go

@@ -1,0 +1,22 @@
+= Build Status Checker
+
+A utility container image that could be used as init containers with Kuberenetes deployments which can use the Knative build to build the image, that will be used in the deployment
+
+== Pre-requisite
+
+* The Kubernetes environment should have https://github.com/knative/build[Knative Build] deployed
+
+== How to use 
+
+Add the following initcontainer definition to the kubernetes deployment
+
+[source,yaml]
+----
+    initContainers:
+    - name: build-status-checker
+        image: quay.io/rhdevelopers/build-status-checker
+        args:
+         - poll
+         - --buildname=my-build
+----
+
